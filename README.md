@@ -4,9 +4,11 @@ Offline FIX message viewer and decoder for troubleshooting trade logs.
 
 ## Run
 
-```powershell
+```sh
 uv run python main.py
 ```
+
+![Main UI](./docs/screenshots/main.png)
 
 ## CLI
 
