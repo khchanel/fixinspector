@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, QObject, Qt, QThread, Signal
-from PySide6.QtGui import QAction, QDragEnterEvent, QDropEvent
+from PySide6.QtGui import QAction, QDragEnterEvent, QDropEvent, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
@@ -172,6 +172,8 @@ class MainWindow(QMainWindow):
         self.paste_box.setPlaceholderText("Paste FIX messages or log excerpts here")
         decode_button = QPushButton("Decode Paste")
         decode_button.clicked.connect(self._decode_paste)
+        self.shortcut = QShortcut(QKeySequence(Qt.CTRL | Qt.Key_Return), self.paste_box)
+        self.shortcut.activated.connect(self._decode_paste)
         paste_panel = QWidget()
         paste_layout = QVBoxLayout(paste_panel)
         paste_layout.addWidget(self.paste_box)
