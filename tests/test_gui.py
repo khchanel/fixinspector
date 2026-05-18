@@ -1,9 +1,15 @@
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
+import pytest
+
+try:
+    from PySide6.QtCore import Qt
+
+    from fixinspector.gui import MessageTableModel
+except ImportError as exc:
+    pytest.skip(f"PySide6 is not available for GUI tests: {exc}", allow_module_level=True)
 
 from fixinspector.core.models import MessageSummary
-from fixinspector.gui import MessageTableModel
 from fixinspector.indexing import IndexEntry
 
 
