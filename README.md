@@ -7,24 +7,50 @@ Offline FIX message viewer and decoder for troubleshooting trade logs.
 ## Requirements
 
 - Python 3.12+
-- `uv`
 - `PySide6` (Qt6)
 - Supported platforms: Windows, macOS, and Linux
 
-## Run
+## Install from source
 
 ```sh
-uv run python main.py
+python -m pip install -e .
+python -m fixinspector
 ```
 
 ![Main UI](./docs/screenshots/main.png)
 
+## Install from PyPI
+
+```sh
+python -m pip install fixinspector
+python -m fixinspector
+```
+
+The `fixinspector` command launches the GUI after installation.
+
 ## CLI
 
 ```sh
-uv run python -m fixinspector.cli decode sample.log --format text
-uv run python -m fixinspector.cli decode sample.log --format json
-uv run python -m fixinspector.cli index sample.log
+fixinspect decode sample.log --format text
+fixinspect decode sample.log --format json
+fixinspect index sample.log
+```
+
+The same CLI subcommands are available through the package module:
+
+```sh
+python -m fixinspector decode sample.log --format json
+python -m fixinspector index sample.log
 ```
 
 Custom QuickFIX-style XML dictionaries can be supplied with `--dict`.
+
+## Development
+
+If you use `uv`, the existing lockfile supports the same workflows:
+
+```sh
+uv sync --all-groups
+uv run python -m fixinspector
+uv run pytest -q
+```
