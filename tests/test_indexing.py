@@ -6,6 +6,8 @@ from fixinspector.indexing import index_file, read_indexed_message
 
 from tests.conftest import make_fix
 
+FIXTURES = Path(__file__).parent / "fixtures"
+
 
 def test_indexes_noisy_file_and_reads_selected_message(tmp_path: Path) -> None:
     first = make_fix([(35, "0"), (49, "S"), (56, "T"), (34, "1")])
@@ -24,3 +26,16 @@ def test_indexes_noisy_file_and_reads_selected_message(tmp_path: Path) -> None:
     message = read_indexed_message(path, entries[1])
     assert message.summary.msg_name == "NewOrderSingle"
     assert message.field_value(11) == "ORDER-2"
+
+
+def test_indexes_sample_fix_session_fixture() -> None:
+    path = FIXTURES / "sample_fix_session.log"
+
+    entries = index_file(path, chunk_size=64)
+    messages = [read_indexed_message(path, entry) for entry in entries]
+
+    assert len(entries) == 13
+    assert all(message.validation.is_valid for message in messages)
+    assert entries[2].summary.trade_summary == "Buy 2,500 TESTA @ 101.25"
+    assert entries[7].summary.trade_summary == "Insufficient test liquidity"
+    assert entries[10].summary.trade_summary == "Too late to cancel test order"
