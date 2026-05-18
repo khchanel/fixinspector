@@ -24,6 +24,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from fixinspector import __version__
 from fixinspector.core.dictionary import FixDictionary
 from fixinspector.core.formatting import format_message_text
 from fixinspector.core.models import DecodedField, DecodedMessage
@@ -186,7 +187,7 @@ class IndexWorker(QObject):
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("FIX Inspector")
+        self.setWindowTitle(f"FIX Inspector {__version__}")
         self.setWindowIcon(app_icon())
         self.resize(1200, 800)
         self.setAcceptDrops(True)

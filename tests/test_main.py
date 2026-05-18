@@ -5,6 +5,7 @@ import sys
 import types
 from pathlib import Path
 
+from fixinspector import __version__
 from fixinspector import __main__
 
 from tests.conftest import make_fix
@@ -18,6 +19,13 @@ def test_module_help(capsys) -> None:
     assert "Launch the GUI" in output
     assert "decode" in output
     assert "index" in output
+
+
+def test_module_prints_version(capsys) -> None:
+    exit_code = __main__.main(["--version"])
+
+    assert exit_code == 0
+    assert capsys.readouterr().out.strip() == f"fixinspector {__version__}"
 
 
 def test_module_launches_gui_by_default(monkeypatch) -> None:

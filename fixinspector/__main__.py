@@ -3,12 +3,16 @@ from __future__ import annotations
 import sys
 from collections.abc import Sequence
 
+from fixinspector import __version__
+
 CLI_COMMANDS = {"decode", "index"}
+VERSION_FLAGS = {"--version", "--versoin"}
 
 HELP_TEXT = """FIX Inspector
 
 Usage:
   python -m fixinspector              Launch the GUI
+  python -m fixinspector --version    Print the package version
   python -m fixinspector decode ...   Decode FIX messages from a file or stdin
   python -m fixinspector index ...    Index FIX messages in a log file
 
@@ -24,6 +28,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     if args and args[0] in {"-h", "--help"}:
         print(HELP_TEXT)
+        return 0
+    if args and args[0] in VERSION_FLAGS:
+        print(f"fixinspector {__version__}")
         return 0
     if args and args[0] in CLI_COMMANDS:
         from fixinspector.cli import main as cli_main

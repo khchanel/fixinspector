@@ -4,6 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from fixinspector import __version__
 from fixinspector.core.dictionary import FixDictionary
 from fixinspector.core.formatting import format_message_text, messages_to_json
 from fixinspector.core.parser import parse_fix_messages
@@ -12,6 +13,7 @@ from fixinspector.indexing import index_file
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="fixinspect")
+    parser.add_argument("--version", "--versoin", action="version", version=f"%(prog)s {__version__}")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     decode_parser = subparsers.add_parser("decode", help="Decode FIX messages from a file or stdin")
