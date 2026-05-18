@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="FIX Inspector app icon">
+  <defs>
+    <linearGradient id="bg" x1="40" y1="24" x2="216" y2="232" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#103b5f"/>
+      <stop offset="0.58" stop-color="#165a6d"/>
+      <stop offset="1" stop-color="#0f6b5c"/>
+    </linearGradient>
+    <linearGradient id="lens" x1="84" y1="66" x2="170" y2="156" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#d7f4ef"/>
+    </linearGradient>
+  </defs>
+  <rect x="18" y="18" width="220" height="220" rx="48" fill="url(#bg)"/>
+  <path d="M68 76h56M68 105h86M68 134h58" stroke="#8ee3d2" stroke-width="12" stroke-linecap="round"/>
+  <path d="M67 166h33M119 166h24M162 166h27" stroke="#f7d36a" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="145" cy="117" r="49" fill="none" stroke="url(#lens)" stroke-width="15"/>
+  <path d="M179 152l35 35" stroke="#ffffff" stroke-width="18" stroke-linecap="round"/>
+  <path d="M179 152l35 35" stroke="#0b2f3e" stroke-width="7" stroke-linecap="round" opacity="0.22"/>
+</svg>

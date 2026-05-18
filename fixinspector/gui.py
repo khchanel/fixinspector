@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import sys
+from importlib import resources
 from pathlib import Path
 
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, QObject, Qt, QThread, Signal
-from PySide6.QtGui import QAction, QDragEnterEvent, QDropEvent, QKeySequence, QShortcut
+from PySide6.QtGui import QAction, QDragEnterEvent, QDropEvent, QIcon, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
@@ -28,6 +29,23 @@ from fixinspector.core.formatting import format_message_text
 from fixinspector.core.models import DecodedField, DecodedMessage
 from fixinspector.core.parser import parse_fix_messages, printable_message
 from fixinspector.indexing import IndexEntry, index_file, read_indexed_message
+
+
+def app_icon() -> QIcon:
+    """Load application icon from resources with fallback support."""
+    try:
+        # Try to load SVG icon from package resources
+        icon_path = resources.files("fixinspector.assets").joinpath("app-icon.svg")
+        icon = QIcon(str(icon_path))
+        # Verify icon loaded successfully on Windows by checking availableSizes
+        if not icon.availableSizes():
+            # SVG failed to load on Windows, try PNG fallback
+            icon_png = resources.files("fixinspector.assets").joinpath("app-icon.png")
+            icon = QIcon(str(icon_png))
+        return icon
+    except Exception:
+        # Fallback: return empty icon if resources fail
+        return QIcon()
 
 
 class MessageTableModel(QAbstractTableModel):
@@ -142,6 +160,7 @@ class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("FIX Inspector")
+        self.setWindowIcon(app_icon())
         self.resize(1200, 800)
         self.setAcceptDrops(True)
         self.dictionary = FixDictionary.common()
@@ -342,6 +361,7 @@ class MainWindow(QMainWindow):
 
 def main() -> int:
     app = QApplication(sys.argv)
+    app.setWindowIcon(app_icon())
     window = MainWindow()
     window.show()
     return app.exec()
