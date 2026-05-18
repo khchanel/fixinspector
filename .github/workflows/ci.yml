@@ -1,9 +1,7 @@
 name: CI
 
 on:
-  push:
-    # Ignore tag pushes so CI does not run when tags are pushed (e.g. releases)
-    tags-ignore: ["*"]
+  push: {}
   pull_request:
     branches: ["master"]
   workflow_dispatch:
