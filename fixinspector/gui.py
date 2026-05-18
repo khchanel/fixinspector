@@ -205,7 +205,10 @@ class MainWindow(QMainWindow):
         self.message_table.setSelectionBehavior(QTableView.SelectRows)
         self.message_table.setSelectionMode(QTableView.SingleSelection)
         self.message_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
-        self.message_table.horizontalHeader().setStretchLastSection(True)
+        self.message_table.horizontalHeader().setStretchLastSection(False)
+        self.message_table.horizontalHeader().setSectionResizeMode(
+            MessageTableModel.COLUMNS.index("Summary"), QHeaderView.Stretch
+        )
         self.message_table.selectionModel().selectionChanged.connect(self._select_message)
 
         self.field_table = QTableView()
@@ -235,7 +238,7 @@ class MainWindow(QMainWindow):
         splitter = QSplitter(Qt.Horizontal)
         splitter.addWidget(self.message_table)
         splitter.addWidget(right_splitter)
-        splitter.setSizes([750, 650])
+        splitter.setSizes([800, 600])
 
         self.filter_box = QLineEdit()
         self.filter_box.setPlaceholderText(
