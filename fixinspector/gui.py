@@ -50,7 +50,7 @@ def app_icon() -> QIcon:
 
 
 class MessageTableModel(QAbstractTableModel):
-    COLUMNS = ("#", "Time", "Type", "Name", "Seq", "Sender", "Target", "ClOrdID", "Status")
+    COLUMNS = ("#", "Time", "Type", "Name", "Seq", "Sender", "Target", "ClOrdID", "Summary", "Status")
     TYPE_COLUMNS = (2, 3)
     TYPE_COLORS = (
         ("#e8f3ff", "#0f4c81"),  # blue
@@ -103,6 +103,7 @@ class MessageTableModel(QAbstractTableModel):
             summary.sender or "",
             summary.target or "",
             summary.cl_ord_id or summary.order_id or summary.exec_id or "",
+            summary.trade_summary,
             summary.validation_status,
         )
         return values[column]
@@ -189,7 +190,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle(f"FIX Inspector {__version__}")
         self.setWindowIcon(app_icon())
-        self.resize(1200, 800)
+        self.resize(1500, 850)
         self.setAcceptDrops(True)
         self.dictionary = FixDictionary.common()
         self.current_file: Path | None = None
@@ -234,10 +235,12 @@ class MainWindow(QMainWindow):
         splitter = QSplitter(Qt.Horizontal)
         splitter.addWidget(self.message_table)
         splitter.addWidget(right_splitter)
-        splitter.setSizes([600, 600])
+        splitter.setSizes([750, 650])
 
         self.filter_box = QLineEdit()
-        self.filter_box.setPlaceholderText("Filter visible rows by MsgType, name, seq, sender, target, or order id")
+        self.filter_box.setPlaceholderText(
+            "Filter visible rows by MsgType, name, seq, sender, target, order id, or summary"
+        )
         self.filter_box.textChanged.connect(self._filter_rows)
         self.status_label = QLabel("Ready")
 
@@ -270,12 +273,19 @@ class MainWindow(QMainWindow):
         toolbar.addAction(open_action)
 
         dict_action = QAction("Load Dictionary", self)
+        dict_action.setToolTip("Load a QuickFIX dictionary XML file")
         dict_action.triggered.connect(self._choose_dictionary)
         toolbar.addAction(dict_action)
 
         cancel_action = QAction("Cancel Index", self)
+        cancel_action.setToolTip("Cancel ongoing indexing operation")
         cancel_action.triggered.connect(self._cancel_index)
         toolbar.addAction(cancel_action)
+
+        reset_action = QAction("Reset", self)
+        reset_action.setToolTip("Clear all views and filters")
+        reset_action.triggered.connect(self._reset_view)
+        toolbar.addAction(reset_action)
 
     def _choose_file(self) -> None:
         file_name, _ = QFileDialog.getOpenFileName(self, "Open FIX log")
@@ -329,6 +339,17 @@ class MainWindow(QMainWindow):
         if self.worker:
             self.worker.cancel()
 
+    def _reset_view(self) -> None:
+        self._cancel_index()
+        self.current_file = None
+        self.pasted_messages = []
+        self.paste_box.clear()
+        self.filter_box.clear()
+        self.message_model.set_entries([])
+        self.field_model.set_message(None)
+        self.raw_view.clear()
+        self.status_label.setText("Ready")
+
     def _index_progress(self, done: int, total: int) -> None:
         if total:
             self.status_label.setText(f"Indexing {done:,} / {total:,} bytes")
@@ -336,6 +357,10 @@ class MainWindow(QMainWindow):
             self.status_label.setText(f"Indexing {done:,} bytes")
 
     def _index_finished(self, entries: list[IndexEntry], path_text: str) -> None:
+        if self.current_file is None or Path(path_text) != self.current_file:
+            self.worker = None
+            self.worker_thread = None
+            return
         self.message_model.set_entries(entries)
         self.status_label.setText(f"Indexed {len(entries)} message(s) from {path_text}")
         self.worker = None
@@ -381,6 +406,7 @@ class MainWindow(QMainWindow):
                     summary.cl_ord_id,
                     summary.order_id,
                     summary.exec_id,
+                    summary.trade_summary,
                     summary.validation_status,
                 )
             ).casefold()

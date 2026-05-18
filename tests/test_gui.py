@@ -18,6 +18,7 @@ def make_summary(
     msg_name: str | None = "NewOrderSingle",
     sender: str | None = "CLIENT",
     target: str | None = "BROKER",
+    trade_summary: str = "",
 ) -> MessageSummary:
     return MessageSummary(
         begin_string="FIX.4.2",
@@ -30,6 +31,7 @@ def make_summary(
         cl_ord_id="ABC-1",
         order_id=None,
         exec_id=None,
+        trade_summary=trade_summary,
         validation_status="OK",
     )
 
@@ -53,6 +55,7 @@ def test_message_table_columns_are_unchanged_except_type_coloring() -> None:
         "Sender",
         "Target",
         "ClOrdID",
+        "Summary",
         "Status",
     )
 

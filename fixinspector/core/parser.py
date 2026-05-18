@@ -195,8 +195,72 @@ def _summary(fields: tuple[DecodedField, ...], validation: ValidationResult, dic
         cl_ord_id=values.get(11),
         order_id=values.get(37),
         exec_id=values.get(17),
+        trade_summary=_trade_summary(fields, values, dictionary),
         validation_status=status,
     )
+
+
+def _trade_summary(fields: tuple[DecodedField, ...], values: dict[int, str], dictionary: FixDictionary) -> str:
+    text = values.get(58)
+    if text and _is_reject(values):
+        return text
+
+    side = _side_label(values, dictionary)
+    qty = _format_quantity(_first_non_zero(values.get(32), values.get(38)))
+    symbol = values.get(55)
+    last_px = _first_non_zero(values.get(31), values.get(44))
+    avg_px = _first_non_zero(values.get(6))
+
+    head = " ".join(part for part in (side, qty, symbol) if part)
+    parts = [head] if head else []
+    if last_px:
+        parts.append(f"@ {last_px}")
+    if avg_px:
+        parts.append(f"avg px {avg_px}")
+    return " ".join(parts)
+
+
+def _is_reject(values: dict[int, str]) -> bool:
+    msg_type = values.get(35)
+    return msg_type in {"3", "9", "j"} or (
+        msg_type == "8" and (values.get(150) == "8" or values.get(39) == "8")
+    )
+
+
+def _side_label(values: dict[int, str], dictionary: FixDictionary) -> str | None:
+    side = values.get(54)
+    return dictionary.enum_label(54, side) or side if side else None
+
+
+def _first_non_zero(*values: str | None) -> str | None:
+    for value in values:
+        if value is not None and not _is_numeric_zero(value):
+            return value
+    return None
+
+
+def _is_numeric_zero(value: str) -> bool:
+    try:
+        return float(value) == 0
+    except ValueError:
+        return False
+
+
+def _format_quantity(value: str | None) -> str | None:
+    if value is None:
+        return None
+    sign = ""
+    rest = value
+    if rest.startswith(("+", "-")):
+        sign = rest[0]
+        rest = rest[1:]
+    whole, dot, fractional = rest.partition(".")
+    if not whole.isdigit() or (dot and not fractional.isdigit()):
+        return value
+    formatted = f"{int(whole):,}"
+    if dot:
+        formatted = f"{formatted}.{fractional}"
+    return f"{sign}{formatted}"
 
 
 def _safe_int(value: str, default: int = 0) -> int:

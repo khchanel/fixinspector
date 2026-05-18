@@ -59,6 +59,7 @@ class MessageSummary:
     order_id: str | None
     exec_id: str | None
     validation_status: str
+    trade_summary: str = ""
 
 
 @dataclass(frozen=True)

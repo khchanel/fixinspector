@@ -59,3 +59,63 @@ def test_extracts_message_without_trailing_delimiter() -> None:
 
     assert len(messages) == 1
     assert messages[0].validation.is_valid
+
+
+def test_summarizes_trade_quantity_symbol_and_prices() -> None:
+    raw = make_fix(
+        [(35, "8"), (54, "1"), (32, "12345"), (55, "TESTSYM"), (31, "45.67"), (6, "45.89")]
+    )
+
+    message = decode_fix_message(raw)
+
+    assert message.summary.trade_summary == "Buy 12,345 TESTSYM @ 45.67 avg px 45.89"
+
+
+def test_summarizes_partial_trade_information() -> None:
+    raw = make_fix([(35, "8"), (54, "2"), (55, "TESTSYM"), (6, "45.89")])
+
+    message = decode_fix_message(raw)
+
+    assert message.summary.trade_summary == "Sell TESTSYM avg px 45.89"
+
+
+def test_summarizes_order_quantity_when_last_quantity_is_absent() -> None:
+    raw = make_fix([(35, "D"), (54, "1"), (38, "12345"), (55, "TESTSYM")])
+
+    message = decode_fix_message(raw)
+
+    assert message.summary.trade_summary == "Buy 12,345 TESTSYM"
+
+
+def test_summarizes_order_quantity_when_last_quantity_is_zero() -> None:
+    raw = make_fix([(35, "8"), (54, "1"), (32, "0"), (38, "12345"), (55, "TESTSYM"), (31, "0"), (6, "0")])
+
+    message = decode_fix_message(raw)
+
+    assert message.summary.trade_summary == "Buy 12,345 TESTSYM"
+
+
+def test_summarizes_order_price_when_last_price_is_zero() -> None:
+    raw = make_fix([(35, "D"), (54, "1"), (38, "12345"), (55, "TESTSYM"), (31, "0"), (44, "45.67")])
+
+    message = decode_fix_message(raw)
+
+    assert message.summary.trade_summary == "Buy 12,345 TESTSYM @ 45.67"
+
+
+def test_reject_summary_uses_text() -> None:
+    raw = make_fix([(35, "3"), (58, "Required tag missing"), (54, "1"), (32, "12345")])
+
+    message = decode_fix_message(raw)
+
+    assert message.summary.trade_summary == "Required tag missing"
+
+
+def test_execution_report_reject_summary_uses_text() -> None:
+    raw = make_fix(
+        [(35, "8"), (150, "8"), (39, "8"), (58, "Order rejected"), (54, "1"), (32, "12345")]
+    )
+
+    message = decode_fix_message(raw)
+
+    assert message.summary.trade_summary == "Order rejected"
