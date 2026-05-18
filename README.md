@@ -4,6 +4,8 @@
 
 Offline FIX message viewer and decoder for troubleshooting trade logs.
 
+![Main UI](./docs/screenshots/main.png)
+
 ## Requirements
 
 - Python 3.12+
@@ -16,8 +18,6 @@ Offline FIX message viewer and decoder for troubleshooting trade logs.
 python -m pip install -e .
 python -m fixinspector
 ```
-
-![Main UI](./docs/screenshots/main.png)
 
 ## Install from PyPI
 

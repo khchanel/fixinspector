@@ -5,7 +5,7 @@ from importlib import resources
 from pathlib import Path
 
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, QObject, Qt, QThread, Signal
-from PySide6.QtGui import QAction, QDragEnterEvent, QDropEvent, QIcon, QKeySequence, QShortcut
+from PySide6.QtGui import QAction, QBrush, QColor, QDragEnterEvent, QDropEvent, QIcon, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
@@ -50,6 +50,17 @@ def app_icon() -> QIcon:
 
 class MessageTableModel(QAbstractTableModel):
     COLUMNS = ("#", "Time", "Type", "Name", "Seq", "Sender", "Target", "ClOrdID", "Status")
+    TYPE_COLUMNS = (2, 3)
+    TYPE_COLORS = (
+        ("#e8f3ff", "#0f4c81"),  # blue
+        ("#eaf7ed", "#1f6f3a"),  # green
+        ("#fff4db", "#8a5a00"),  # amber
+        ("#f3ecff", "#5a3d8f"),  # purple
+        ("#fdecea", "#9f2f24"),  # red
+        ("#e7f7f7", "#12656a"),  # teal
+        ("#f3f0e8", "#5b4b2a"),  # olive
+        ("#edf1f7", "#314763"),  # slate
+    )
 
     def __init__(self) -> None:
         super().__init__()
@@ -67,10 +78,21 @@ class MessageTableModel(QAbstractTableModel):
         return 0 if parent.isValid() else len(self.COLUMNS)
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
-        if not index.isValid() or role not in (Qt.DisplayRole, Qt.ToolTipRole):
+        if not index.isValid():
             return None
         entry = self.entries[index.row()]
         summary = entry.summary
+        column = index.column()
+
+        if role in (Qt.BackgroundRole, Qt.ForegroundRole) and column in self.TYPE_COLUMNS:
+            if not summary.msg_type:
+                return None
+            background, foreground = self._type_colors(summary.msg_type)
+            return QBrush(QColor(background if role == Qt.BackgroundRole else foreground))
+
+        if role not in (Qt.DisplayRole, Qt.ToolTipRole):
+            return None
+
         values = (
             entry.row + 1,
             summary.sending_time or "",
@@ -82,7 +104,12 @@ class MessageTableModel(QAbstractTableModel):
             summary.cl_ord_id or summary.order_id or summary.exec_id or "",
             summary.validation_status,
         )
-        return values[index.column()]
+        return values[column]
+
+    @classmethod
+    def _type_colors(cls, msg_type: str) -> tuple[str, str]:
+        color_index = sum((index + 1) * ord(char) for index, char in enumerate(msg_type)) % len(cls.TYPE_COLORS)
+        return cls.TYPE_COLORS[color_index]
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.DisplayRole):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
