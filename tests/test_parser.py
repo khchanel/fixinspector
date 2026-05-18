@@ -104,7 +104,7 @@ def test_summarizes_order_price_when_last_price_is_zero() -> None:
 
 
 def test_reject_summary_uses_text() -> None:
-    raw = make_fix([(35, "3"), (58, "Required tag missing"), (54, "1"), (32, "12345")])
+    raw = make_fix([(35, "3"), (58, "Required tag missing")])
 
     message = decode_fix_message(raw)
 
@@ -113,9 +113,9 @@ def test_reject_summary_uses_text() -> None:
 
 def test_execution_report_reject_summary_uses_text() -> None:
     raw = make_fix(
-        [(35, "8"), (150, "8"), (39, "8"), (58, "Order rejected"), (54, "1"), (32, "12345")]
+        [(35, "8"), (150, "8"), (39, "8"), (58, "Order rejected"), (54, "1"), (38, "12345"), (55, "TESTSYM")]
     )
 
     message = decode_fix_message(raw)
 
-    assert message.summary.trade_summary == "Order rejected"
+    assert message.summary.trade_summary == "Buy 12,345 TESTSYM Order rejected"

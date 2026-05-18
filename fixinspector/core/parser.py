@@ -195,16 +195,12 @@ def _summary(fields: tuple[DecodedField, ...], validation: ValidationResult, dic
         cl_ord_id=values.get(11),
         order_id=values.get(37),
         exec_id=values.get(17),
-        trade_summary=_trade_summary(fields, values, dictionary),
+        trade_summary=_trade_summary(values, dictionary),
         validation_status=status,
     )
 
 
-def _trade_summary(fields: tuple[DecodedField, ...], values: dict[int, str], dictionary: FixDictionary) -> str:
-    text = values.get(58)
-    if text and _is_reject(values):
-        return text
-
+def _trade_summary(values: dict[int, str], dictionary: FixDictionary) -> str:
     side = _side_label(values, dictionary)
     qty = _format_quantity(_first_non_zero(values.get(32), values.get(38)))
     symbol = values.get(55)
@@ -217,7 +213,12 @@ def _trade_summary(fields: tuple[DecodedField, ...], values: dict[int, str], dic
         parts.append(f"@ {last_px}")
     if avg_px:
         parts.append(f"avg px {avg_px}")
-    return " ".join(parts)
+    summary = " ".join(parts)
+
+    text = values.get(58)
+    if text and _is_reject(values):
+        return f"{summary} {text}" if summary else text
+    return summary
 
 
 def _is_reject(values: dict[int, str]) -> bool:

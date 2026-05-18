@@ -37,5 +37,5 @@ def test_indexes_sample_fix_session_fixture() -> None:
     assert len(entries) == 13
     assert all(message.validation.is_valid for message in messages)
     assert entries[2].summary.trade_summary == "Buy 2,500 TESTA @ 101.25"
-    assert entries[7].summary.trade_summary == "Insufficient test liquidity"
+    assert entries[7].summary.trade_summary == "Sell 10,000 TESTB Insufficient test liquidity"
     assert entries[10].summary.trade_summary == "Too late to cancel test order"
