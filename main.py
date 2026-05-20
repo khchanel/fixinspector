@@ -1,4 +1,4 @@
-from fixinspector.gui import main
+from fixinspector.__main__ import main
 
 
 if __name__ == "__main__":

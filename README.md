@@ -4,7 +4,7 @@
 
 Offline FIX message viewer and decoder for troubleshooting trade logs.
 
-![Main UI](./docs/screenshots/main.png)
+![FIX Inspector main window](https://raw.githubusercontent.com/khchanel/fixinspector/master/docs/screenshots/main.png)
 
 ## Requirements
 
