@@ -8,7 +8,24 @@ from fixinspector import __version__
 from fixinspector.core.dictionary import FixDictionary
 from fixinspector.core.formatting import format_message_text, messages_to_json
 from fixinspector.core.parser import parse_fix_messages
-from fixinspector.indexing import index_file
+from fixinspector.indexing import IndexEntry, index_file
+
+
+INDEX_COLUMNS = (
+    "#",
+    "Offset",
+    "Bytes",
+    "Time",
+    "Type",
+    "Name",
+    "Seq",
+    "Sender",
+    "Target",
+    "ID",
+    "Summary",
+    "Status",
+)
+RIGHT_ALIGNED_INDEX_COLUMNS = {0, 1, 2, 6}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -60,26 +77,52 @@ def _decode(source: str, dictionary: FixDictionary, output_format: str, limit: i
 
 
 def _index(source: str, dictionary: FixDictionary, limit: int | None) -> int:
-    rows = index_file(source, dictionary)
-    for entry in rows[:limit]:
-        summary = entry.summary
-        print(
-            "\t".join(
-                [
-                    str(entry.row),
-                    str(entry.offset),
-                    str(entry.length),
-                    summary.sending_time or "",
-                    summary.msg_type or "",
-                    summary.msg_name or "",
-                    summary.seq_num or "",
-                    summary.sender or "",
-                    summary.target or "",
-                    summary.validation_status,
-                ]
-            )
-        )
+    rows = index_file(source, dictionary)[:limit]
+    if rows:
+        print(_format_index_table(rows))
     return 0
+
+
+def _format_index_table(entries: list[IndexEntry]) -> str:
+    rows = [_index_row(entry) for entry in entries]
+    widths = [
+        max(len(INDEX_COLUMNS[index]), *(len(row[index]) for row in rows))
+        for index in range(len(INDEX_COLUMNS))
+    ]
+
+    lines = [
+        _format_index_table_row(INDEX_COLUMNS, widths),
+        _format_index_table_row(tuple("-" * width for width in widths), widths),
+    ]
+    lines.extend(_format_index_table_row(row, widths) for row in rows)
+    return "\n".join(lines)
+
+
+def _index_row(entry: IndexEntry) -> tuple[str, ...]:
+    summary = entry.summary
+    identifier = summary.cl_ord_id or summary.order_id or summary.exec_id or ""
+    return (
+        str(entry.row + 1),
+        str(entry.offset),
+        str(entry.length),
+        summary.sending_time or "",
+        summary.msg_type or "",
+        summary.msg_name or "",
+        summary.seq_num or "",
+        summary.sender or "",
+        summary.target or "",
+        identifier,
+        summary.trade_summary,
+        summary.validation_status,
+    )
+
+
+def _format_index_table_row(values: tuple[str, ...], widths: list[int]) -> str:
+    cells = []
+    for index, value in enumerate(values):
+        formatter = str.rjust if index in RIGHT_ALIGNED_INDEX_COLUMNS else str.ljust
+        cells.append(formatter(value, widths[index]))
+    return "  ".join(cells).rstrip()
 
 
 def _load_dictionary(path: str | None) -> FixDictionary:

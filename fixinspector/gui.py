@@ -32,6 +32,9 @@ from fixinspector.core.parser import parse_fix_messages, printable_message
 from fixinspector.indexing import IndexEntry, index_file, read_indexed_message
 
 
+MESSAGE_RESIZE_CONTENTS_PRECISION = 500
+
+
 def app_icon() -> QIcon:
     """Load application icon from resources with fallback support."""
     try:
@@ -47,6 +50,21 @@ def app_icon() -> QIcon:
     except Exception:
         # Fallback: return empty icon if resources fail
         return QIcon()
+
+
+def refit_message_columns_after_load(table: QTableView, stretch_column: int | None = None) -> None:
+    model = table.model()
+    if model is None:
+        return
+
+    if stretch_column is None:
+        stretch_column = MessageTableModel.COLUMNS.index("Summary")
+
+    header = table.horizontalHeader()
+    header.setResizeContentsPrecision(MESSAGE_RESIZE_CONTENTS_PRECISION)
+    table.resizeColumnsToContents()
+    header.setSectionResizeMode(QHeaderView.Interactive)
+    header.setSectionResizeMode(stretch_column, QHeaderView.Stretch)
 
 
 class MessageTableModel(QAbstractTableModel):
@@ -214,7 +232,10 @@ class MainWindow(QMainWindow):
         self.field_table = QTableView()
         self.field_table.setModel(self.field_model)
         self.field_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
-        self.field_table.horizontalHeader().setStretchLastSection(True)
+        self.field_table.horizontalHeader().setStretchLastSection(False)
+        self.field_table.horizontalHeader().setSectionResizeMode(
+            FieldTableModel.COLUMNS.index("Value"), QHeaderView.Stretch
+        )
 
         self.raw_view = QPlainTextEdit()
         self.raw_view.setReadOnly(True)
@@ -314,6 +335,7 @@ class MainWindow(QMainWindow):
             for index, message in enumerate(messages)
         ]
         self.message_model.set_entries(entries)
+        refit_message_columns_after_load(self.message_table)
         self.field_model.set_message(messages[0] if messages else None)
         self.raw_view.setPlainText(format_message_text(messages[0]) if messages else "")
         self.status_label.setText(f"Decoded {len(messages)} pasted message(s)")
@@ -365,6 +387,7 @@ class MainWindow(QMainWindow):
             self.worker_thread = None
             return
         self.message_model.set_entries(entries)
+        refit_message_columns_after_load(self.message_table)
         self.status_label.setText(f"Indexed {len(entries)} message(s) from {path_text}")
         self.worker = None
         self.worker_thread = None
