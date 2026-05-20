@@ -23,12 +23,30 @@ def test_cli_decode_json(tmp_path: Path, capsys) -> None:
 
 def test_cli_index_text(tmp_path: Path, capsys) -> None:
     path = tmp_path / "message.fix"
-    path.write_text(make_fix([(35, "0"), (49, "S"), (56, "T")]), encoding="latin1")
+    path.write_text(
+        make_fix(
+            [
+                (35, "D"),
+                (49, "S"),
+                (56, "T"),
+                (34, "7"),
+                (11, "ABC"),
+                (54, "1"),
+                (38, "2500"),
+                (55, "TESTA"),
+            ]
+        ),
+        encoding="latin1",
+    )
 
     exit_code = main(["index", str(path)])
 
     assert exit_code == 0
-    assert "Heartbeat" in capsys.readouterr().out
+    output = capsys.readouterr().out
+    assert "#  Offset  Bytes" in output
+    assert "NewOrderSingle" in output
+    assert "ABC" in output
+    assert "Buy 2,500 TESTA" in output
 
 
 def test_cli_prints_version(capsys) -> None:
